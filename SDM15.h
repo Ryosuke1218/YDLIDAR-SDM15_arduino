@@ -3,6 +3,7 @@
 #define SDM15_H_
 
 #include <Arduino.h>
+#include <SoftwareSerial.h>
 
 struct VersionInfo {
   bool checksum_error;
@@ -25,6 +26,7 @@ struct ScanData {
   int distance;
   int intensity;
   int disturb;
+  byte recv[9];
 };
 
 const int PACKET_HED1 = 0xAA;
@@ -49,20 +51,45 @@ enum Freq {
   Freq_1800Hz = 0x05
 };
 
+enum FilterHex {
+  Off = 0x00,
+  On = 0x01
+};
+
+enum OutputDataFormatHex {
+  Standard = 0x00,
+  Pixhawk = 0x01
+};
+
+enum BaudRateHex {
+  BAUD_230400 = 0x00,
+  BAUD_460800 = 0x01,
+  BAUD_512000 = 0x02,
+  BAUD_921600 = 0x03,
+  BAUD_1500000 = 0x04
+};
+
 class SDM15 {
  public:
-  explicit SDM15(HardwareSerial &serial) : _sensor_serial(serial) {}
+  explicit SDM15(SoftwareSerial &serial) : _sensor_serial(serial) {}
+  // explicit SDM15(HardwareSerial &serial) : _sensor_serial(serial) {}
   VersionInfo ObtainVersionInfo();
   TestResult SelfCheckTest();
   bool StartScan();
   bool StopScan();
   ScanData GetScanData();
   bool SetOutputFrequency(Freq freq);
+  bool SetFilter(FilterHex filter);
+  bool SetBaudRate(BaudRateHex baud);
+  bool SetOutputDataFormat(OutputDataFormatHex format);
+  bool RestoreFactorySettings();
 
  private:
   byte CalculateChecksum(byte *recv, int size);
   void ClearBuffer();
-  HardwareSerial &_sensor_serial;
+  // HardwareSerial &_sensor_serial;
+  SoftwareSerial &_sensor_serial;
 };
 
 #endif  // SDM15_H_
+

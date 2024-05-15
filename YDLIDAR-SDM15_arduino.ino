@@ -1,11 +1,17 @@
 #include "SDM15.h"
+#include <SoftwareSerial.h>
 
-SDM15 sdm15(Serial1);
+SoftwareSerial mySerial (10, 11);
 
-void setup() {
+SDM15 sdm15(mySerial);
+// SDM15 sdm15(Serial1);
+
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(9600);
-  Serial1.begin(460800);
+  Serial.begin(115200);
+  mySerial.begin(9600);
+  // Serial1.begin(460800);
 
   // wait 1s
   delay(5000);
@@ -15,8 +21,14 @@ void setup() {
   // get version info
   VersionInfo info = sdm15.ObtainVersionInfo();
 
-  if (info.checksum_error) {
+  if (info.checksum_error)
+  {
+    // String message = "";
     Serial.println("checksum error");
+    // for (int i = 0; i < 25; i++)
+    //   message += String(info.recv[i], HEX);
+
+    // Serial.println(message);
     return;
   }
 
@@ -35,14 +47,18 @@ void setup() {
   // get self check test
   TestResult test = sdm15.SelfCheckTest();
 
-  if (test.checksum_error) {
+  if (test.checksum_error)
+  {
     Serial.println("checksum error");
     return;
   }
 
-  if (test.self_check_result) {
+  if (test.self_check_result)
+  {
     Serial.println("self check success");
-  } else {
+  }
+  else
+  {
     Serial.println("self check failed");
     Serial.print("error code: ");
     Serial.println(test.self_check_error_code);
@@ -52,23 +68,27 @@ void setup() {
   delay(1000);
 }
 
-void loop() {
-  // set output freq
-  // bool result2 = sdm15.SetOutputFrequency(Freq_100Hz);
-  // if (!result2) Serial.println("set output freq checksum error");
-
+void loop()
+{
   Serial.println("start scan");
 
   // start scan
   bool result = sdm15.StartScan();
 
-  if (!result) Serial.println("start scan checksum error");
+  if (!result)
+    Serial.println("start scan checksum error");
 
   // get scan data 50 times
-  for (int i = 0; i < 50000; i++) {
+  for (int i = 0; i < 50000; i++)
+  {
     ScanData data = sdm15.GetScanData();
 
-    if (data.checksum_error) Serial.println("checksum error");
+    if (data.checksum_error)
+      Serial.println("checksum error");
+    for (int j = 0; j < 9; j++)
+    {
+      Serial.print(static_cast<int>(data.recv[j]));
+    }
 
     Serial.print("scan times: ");
     Serial.print(i);
@@ -83,7 +103,8 @@ void loop() {
   // stop scan
   result = sdm15.StopScan();
 
-  if (!result) Serial.println("stop scan checksum error");
+  if (!result)
+    Serial.println("stop scan checksum error");
 
   Serial.println("stop scan");
 
